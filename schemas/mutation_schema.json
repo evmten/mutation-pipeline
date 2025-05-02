@@ -1,0 +1,10 @@
+{
+    "sample_id": "TCGA-AB-1234",
+    "gene": "TP53",
+    "mutation_status": 1,
+    "source_dataset": "TCGA_BRCA",
+    "is_hotspot": true,
+    "is_deleterious": true,
+    "variant_type": "Missense_Mutation"
+  }
+  

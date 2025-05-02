@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env
+
+# VS Code
+.vscode/
+
+# Data
+data/raw_data/
+data/ingested_data/
+data/processed_data/
+*.csv
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Secrets
+*.env
