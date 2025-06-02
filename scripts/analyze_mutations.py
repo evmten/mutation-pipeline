@@ -3,15 +3,12 @@ import pandas as pd
 import psycopg2
 from dotenv import load_dotenv
 
-# === Paths ===
-input_file = "/opt/airflow/data/processed_data/depmap_clean.csv"
+input_file = "/opt/airflow/data/transformed_data/depmap_clean.csv"
 output_file = "/opt/airflow/data/alerts/mutation_alerts.csv"
 os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-# === Load data ===
 df = pd.read_csv(input_file, low_memory=False)
 
-# === Label mutations ===
 def label_mutation(row):
     if row.get("isdeleterious"):
         return "DELETERIOUS"
@@ -24,9 +21,8 @@ def label_mutation(row):
 df["mutation_flag"] = df.apply(label_mutation, axis=1)
 alerts = df[df["mutation_flag"].notnull()]
 alerts.to_csv(output_file, index=False)
-print(f"✅ Saved {len(alerts)} alerts with flags to {output_file}")
+print(f"Saved {len(alerts)} alerts with flags to {output_file}")
 
-# === Store in PostgreSQL ===
 load_dotenv()
 
 db_params = {
@@ -79,4 +75,4 @@ for _, row in alerts.iterrows():
 conn.commit()
 cur.close()
 conn.close()
-print("✅ Mutation flags stored in PostgreSQL.")
+print("Mutation flags stored in PostgreSQL.")

@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- Database connection ---
 try:
     db_params = {
         "host": os.getenv("POSTGRES_HOST", "localhost"),  # Change to 'postgres' if inside Docker
@@ -17,10 +16,9 @@ try:
     }
     conn = psycopg2.connect(**db_params)
 except psycopg2.OperationalError as e:
-    st.error(f"❌ Database connection failed:\n{e}")
+    st.error(f"Database connection failed:\n{e}")
     st.stop()
 
-# --- Load data ---
 try:
     query = "SELECT * FROM mutation_flags"
     df = pd.read_sql(query, conn)
@@ -29,10 +27,8 @@ except Exception as e:
     st.error(f"Failed to load data: {e}")
     st.stop()
 
-# --- Streamlit App ---
-st.title("🔬 Mutation Alert Dashboard")
+st.title("Mutation Alert Dashboard")
 
-# Filters
 flag_filter = st.multiselect("Filter by Mutation Flag", df["mutation_flag"].unique())
 gene_filter = st.text_input("Filter by Hugo Symbol (gene)")
 
@@ -42,7 +38,6 @@ if flag_filter:
 if gene_filter:
     filtered_df = filtered_df[filtered_df["hugo_symbol"].str.contains(gene_filter, case=False, na=False)]
 
-# Display logic
 MAX_CELLS = 100_000
 total_cells = filtered_df.shape[0] * filtered_df.shape[1]
 
@@ -52,7 +47,7 @@ st.write(f"Deleterious mutations: {filtered_df['is_deleterious'].sum()}")
 st.write(f"Showing {len(filtered_df)} rows, {total_cells:,} cells")
 
 if total_cells > MAX_CELLS:
-    st.warning("⚠️ Too many cells to apply styling. Showing plain table.")
+    st.warning("Too many cells to apply styling. Showing plain table.")
     st.dataframe(filtered_df)
 else:
     def highlight_flags(val):

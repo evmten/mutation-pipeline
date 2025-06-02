@@ -3,10 +3,8 @@ import pandas as pd
 import psycopg2
 from dotenv import load_dotenv
 
-# Load environment variables from .env
 load_dotenv()
 
-# PostgreSQL connection parameters
 db_params = {
     "host": os.getenv("POSTGRES_HOST", "postgres"),
     "dbname": os.getenv("POSTGRES_DB", "mutations"),
@@ -15,16 +13,12 @@ db_params = {
     "port": os.getenv("POSTGRES_PORT", "5432")
 }
 
-# CSV with mutation flags
 input_path = "/opt/airflow/data/alerts/mutation_alerts.csv"
 
-# Read data
 df = pd.read_csv(input_path)
 
-# Optional: limit size if you're testing
 # df = df.head(100)
 
-# Connect to PostgreSQL and insert
 conn = psycopg2.connect(**db_params)
 cur = conn.cursor()
 
@@ -33,7 +27,6 @@ def to_bool(val):
         return False
     return bool(val)
 
-# Create table if not exists
 cur.execute("""
     CREATE TABLE IF NOT EXISTS mutation_flags (
         id SERIAL PRIMARY KEY,
@@ -48,7 +41,6 @@ cur.execute("""
     );
 """)
 
-# Insert data row-by-row (bulk load can be added later if needed)
 for _, row in df.iterrows():
     cur.execute("""
         INSERT INTO mutation_flags (

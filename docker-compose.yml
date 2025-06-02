@@ -1,12 +1,84 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - .:/app
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
     environment:
-      - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
-    command: tail -f /dev/null  # keeps the container running for testing
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: mutations
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  airflow-init:
+    build: .
+    entrypoint: airflow db init
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/mutations
+    volumes:
+      - airflow_data:/opt/airflow
+      - .env:/opt/airflow/.env
+
+  airflow-webserver:
+    build: .
+    container_name: airflow-webserver
+    depends_on:
+      - airflow-init
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/mutations
+    ports:
+      - "8080:8080"
+    command: airflow webserver
+    volumes:
+      - airflow_data:/opt/airflow
+      - .env:/opt/airflow/.env
+      - data:/opt/airflow/data
+      - ./scripts:/opt/airflow/scripts
+
+  airflow-scheduler:
+    build: .
+    container_name: airflow-scheduler
+    depends_on:
+      - airflow-init
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/mutations
+    command: airflow scheduler
+    volumes:
+      - airflow_data:/opt/airflow
+      - .env:/opt/airflow/.env
+      - data:/opt/airflow/data
+      - ./airflow/dags:/opt/airflow/dags 
+      - ./scripts:/opt/airflow/scripts
+
+  streamlit:
+    build: .
+    container_name: streamlit
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/mutations
+    command: streamlit run streamlit_app/app.py --server.port=8501 --server.address=0.0.0.0
+    ports:
+      - "8501:8501"
+    volumes:
+      - airflow_data:/opt/airflow
+      - .env:/opt/airflow/.env
+      - ./streamlit_app:/opt/airflow/streamlit_app
+      - data:/opt/airflow/data
+    depends_on:
+      - postgres
+
+volumes:
+  airflow_data:
+  pgdata:
+  data:
+
+

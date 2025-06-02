@@ -2,8 +2,8 @@ import pandas as pd
 import os
 import re
 
-input_dir = "data/ingested_data/"
-output_dir = "data/processed_data/"
+input_dir = "/opt/airflow/data/ingested_data/"
+output_dir = "/opt/airflow/data/processed_data/"
 os.makedirs(output_dir, exist_ok=True)
 
 def clean_columns(df):
@@ -14,12 +14,11 @@ def clean_columns(df):
     ]
     return df
 
-def report_missing(df, name):
-    total_missing = df.isnull().sum().sum()
-    print(f"→ {name}: Missing values = {total_missing}")
-    return total_missing
+# def report_missing(df, name):
+#     total_missing = df.isnull().sum().sum()
+#     print(f"→ {name}: Missing values = {total_missing}")
+#     return total_missing
 
-# Load and clean each dataset
 datasets = {
     "brca": pd.read_csv(os.path.join(input_dir, "brca_data_w_subtypes.csv")),
     "glioblastoma": pd.read_csv(os.path.join(input_dir, "glioblastoma_multiforme_dead___sheet1.csv")),
@@ -28,7 +27,6 @@ datasets = {
     "data": pd.read_csv(os.path.join(input_dir, "data.csv")),
 }
 
-# Process and save
 log_path = os.path.join(output_dir, "processing_log.txt")
 with open(log_path, "w") as log_file:
     for name, df in datasets.items():
@@ -48,12 +46,4 @@ with open(log_path, "w") as log_file:
         print(f"→ {name}: shape={df.shape}, missing={missing}")
         log_file.write(f"{name}: shape={df.shape}, missing={missing}\n")
         df.to_csv(os.path.join(output_dir, f"{name}_clean.csv"), index=False)
-        # msg = f"{name}: shape={df.shape}, missing={missing}"
-        # print("→", msg)
-        # log_file.write(msg + "\n")
-        # print(f"{name.capitalize()} shape: {df.shape}")
-        # df.to_csv(os.path.join(output_dir, f"{name}_clean.csv"), index=False)
-        # report_missing(df, name)
-
         
-
