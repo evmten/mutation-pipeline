@@ -3,12 +3,15 @@ import pandas as pd
 import psycopg2
 from dotenv import load_dotenv
 
+# File paths
 input_file = "/opt/airflow/data/transformed_data/depmap_clean.csv"
 output_file = "/opt/airflow/data/alerts/mutation_alerts.csv"
 os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
+# Read input CSV
 df = pd.read_csv(input_file, low_memory=False)
 
+# Function to label mutations
 def label_mutation(row):
     if row.get("isdeleterious"):
         return "DELETERIOUS"
@@ -18,13 +21,18 @@ def label_mutation(row):
         return "KNOWN_GENE"
     return None
 
+# Apply mutation flagging
 df["mutation_flag"] = df.apply(label_mutation, axis=1)
+
+# Filter alerts and save to CSV
 alerts = df[df["mutation_flag"].notnull()]
 alerts.to_csv(output_file, index=False)
 print(f"Saved {len(alerts)} alerts with flags to {output_file}")
 
+# Load environment variables
 load_dotenv()
 
+# Database connection parameters
 db_params = {
     "host": os.getenv("POSTGRES_HOST", "postgres"),
     "dbname": os.getenv("POSTGRES_DB", "mutations"),
@@ -33,9 +41,11 @@ db_params = {
     "port": os.getenv("POSTGRES_PORT", "5432")
 }
 
+# Connect to PostgreSQL
 conn = psycopg2.connect(**db_params)
 cur = conn.cursor()
 
+# Create table if not exists
 cur.execute("""
     CREATE TABLE IF NOT EXISTS mutation_flags (
         id SERIAL PRIMARY KEY,
@@ -50,11 +60,13 @@ cur.execute("""
     );
 """)
 
+# Convert value to boolean
 def to_bool(val):
     if pd.isna(val):
         return False
     return bool(val)
 
+# Insert alerts into PostgreSQL
 for _, row in alerts.iterrows():
     cur.execute("""
         INSERT INTO mutation_flags (
@@ -72,6 +84,7 @@ for _, row in alerts.iterrows():
         row.get("mutation_flag")
     ))
 
+# Commit and close the connection
 conn.commit()
 cur.close()
 conn.close()
