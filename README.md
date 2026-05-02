@@ -1,4 +1,4 @@
-# Genomic Mutation Analysis Pipeline
+# Genomic Mutation Data Pipeline
 
 This project is a **bioinformatics-inspired data engineering pipeline** that identifies potentially harmful gene mutations. It is designed as a modular system with **data ingestion, transformation, mutation flagging, and dashboard visualization**, orchestrated through **Apache Airflow** and supported by a **PostgreSQL database** and a **Streamlit dashboard**.
 
