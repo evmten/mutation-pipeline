@@ -6,18 +6,17 @@ This project is a **bioinformatics-inspired data engineering pipeline** that ide
 
 ## Features
 
-- **Automated ETL pipeline** using Apache Airflow
+- **Orchestrated ETL pipeline** using Apache Airflow
 - **Mutation analysis logic** to flag deleterious variants
 - **PostgreSQL database** for storing alerts
 - **Streamlit dashboard** for interactive exploration
 - Fully containerized with **Docker**
-- Basic testing and logging included
+- Basic logging and validation included
 
 ## Pipeline Overview
 
 ### 1. **Ingestion**
-- Loads mutation data from local files (e.g. `ccle_mutations.csv`)
-- Scheduled and managed via Airflow (`ingest_dag.py`)
+- Ingests mutation datasets from Azure Blob Storage via Airflow (`ingest_dag.py`), with basic shape and missing-value validation on download
 
 ### 2. **Transformation**
 - Filters relevant columns (e.g. `Hugo_Symbol`, `Variant_Type`, `isDeleterious`)
@@ -41,11 +40,11 @@ This project is a **bioinformatics-inspired data engineering pipeline** that ide
 |--------------|-----------------------------------|
 | Python       | Core scripting and logic          |
 | Apache Airflow | Workflow orchestration          |
+| Azure Blob Storage | Cloud storage and data ingestion source |
 | PostgreSQL   | Database for alert storage        |
 | Streamlit    | Dashboard and frontend            |
 | Docker       | Containerization of all services  |
 | Pandas       | Data manipulation and filtering   |
-| GitHub Actions (optional) | CI/CD automation    |
 
 ---
 
