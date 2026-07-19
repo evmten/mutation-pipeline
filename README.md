@@ -13,14 +13,29 @@ This project is a **bioinformatics-inspired data engineering pipeline** that ide
 - Fully containerized with **Docker**
 - Basic logging and validation included
 
+## Data sources
+
+- **CCLE mutations** (`CCLE_mutations.csv`) — Cancer Cell Line Encyclopedia,
+  from the Broad Institute's DepMap portal. This is the dataset the analysis
+  runs on. (Confirmed by the columns the pipeline selects: DepMap_ID,
+  isDeleterious, isTCGAhotspot, Genome_Change, ExAC_AF.)
+- **Additional datasets, ingested and cleaned but not analysed:** a
+  breast-cancer dataset with molecular subtypes (`brca_data_w_subtypes.csv`)
+  and a glioblastoma clinical/survival dataset (`Glioblastoma Multiforme Dead - Sheet1.csv`,
+  originally an Excel export). These were staged during development; only the
+  CCLE file is carried through to flagging and the dashboard.
+
+  Raw files were stored in an Azure Blob container as a cloud landing zone.
+  The CCLE file is publicly available from DepMap.
+
 ## Pipeline Overview
 
 ### 1. **Ingestion**
 - Ingests mutation datasets from Azure Blob Storage via Airflow (`ingest_dag.py`), with basic shape and missing-value validation on download
 
 ### 2. **Transformation**
-- Filters relevant columns (e.g. `Hugo_Symbol`, `Variant_Type`, `isDeleterious`)
-- Cleans and prepares the dataset for analysis
+- Cleans column names to consistent snake_case across all datasets
+- Narrows the CCLE file to the relevant columns (e.g. `Hugo_Symbol`, `Variant_Type`, `isDeleterious`)
 
 ### 3. **Mutation Analysis**
 - Applies rule-based logic to flag potentially harmful mutations
